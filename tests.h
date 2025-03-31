@@ -3,6 +3,8 @@
 #include "naive.h"
 #include "foremost.h"
 #include "revforemost.h"
+#include "fastest.h"
+#include "shortest.h"
 
 #include <iostream>
 #include <fstream>
@@ -11,53 +13,67 @@
 #include <string>
 #include <vector>
 
-void stressTestCheckPath(int ITE) { // check validity (if the path is that claimed). NOT DONE
-    // const int LOWER_N = 1, UPPER_N = 10, LOWER_M = 0, UPPER_M = 10, C = 20, L = 20;
+void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // check if paths are valid and have the claimed time
+    const int LOWER_N = 1, UPPER_N = 30, LOWER_M = 0, UPPER_M = 200, T = 200, L = 10;
+    auto [n, edges] = randomGraph(LOWER_N, UPPER_N, LOWER_M, UPPER_M, T, L);
+    streamPresentation_ize(n, edges);
+
+    auto checkPath = [&](std::string problem, int ta, int tw, int x, const std::pair<int, std::vector<Edge>> timepath) -> void {
+        if (abs(timepath.first) == INF) return; // no path reported;
+        int source = problem == "REVFOREMOST" ? -1 : x;
+        int target = problem == "REVFOREMOST" ? x : -1;
+        if (!isPathValid(n, edges, timepath.second, ta, tw, source, target) || computeTimeOfPath(n, edges, ta, tw, timepath.second, problem) != timepath.first) {
+            std::cout << "COUNTERTEST FOUND ON PROBLEM " << problem << '\n';
+            std::cout << "size of graph: " << n << ' ' << edges.size() << '\n';
+            std::cout << "specification: " << x << ' ' << ta << ' ' << tw << '\n';
+            for (auto [u, v, t, lambda] : edges) {
+                std::cout << u << ' ' << v << ' ' << t << '_' << lambda << '\n';
+            }
+
+            std::cout << "time reported: " << timepath.first << '\n';
+            std::cout << "path reported:\n";
+            for (const Edge &e : edges) {
+                std::cout << "(" << e.u << ", " << e.v << ", " << e.t << ", " << e.lambda << ")\n";
+            }
+            exit(-1);
+        }
+    };
+
+    if (foremost) {
+        int x = 1;
+        int ta = T / 4, tw = T - ta;
+        Foremost fm(n, edges, ta, tw, x);
+        for (int u = 1; u <= n; u++) {
+            checkPath("FOREMOST", ta, tw, x, fm.getForemostPath(u));
+        }
+    }
     
-    // for (int ite = 0; ite < ITE; ite++) {
-    //     auto [n, edges] = randomGraph(LOWER_N, UPPER_N, LOWER_M, UPPER_M, C, L);
-    //     streamPresentation_ize(n, edges);
-    //     int ta = 0;
-    //     int tw = C;
-    //     int x = 1;
+    if (revforemost) {
+        int x = 1;
+        int ta = T / 4, tw = T - ta;
+        ReverseForemost rfm(n, edges, ta, tw, x);
+        for (int u = 1; u <= n; u++) {
+            checkPath("REVFOREMOST", ta, tw, x, rfm.getReverseForemostPath(u));
+        }
+    }
+    
+    if (fastest) {
+        int x = 1;
+        int ta = T / 4, tw = T - ta;
+        Fastest ft(n, edges, ta, tw, x);
+        std::vector<int> time1 = ft.getAllFastestTime();
+        for (int u = 1; u <= n; u++) {
+            checkPath("FASTEST", ta, tw, x, ft.getFastestPath(u));
+        }
+    }
+
+    if (shortest) {
         
-    //     Foremost fm(n, edges, ta, tw, x);
-    //     std::vector<int> t1 = fm.getAllForemostTime();
-
-    //     if (t1 != t2) {
-    //         std::cout << "COUNTERTEST FOUND!\n";
-    //         std::cout << "size of graph: " << n << ' ' << edges.size() << '\n';
-    //         std::cout << "specification: " << x << ' ' << ta << ' ' << tw << '\n';
-    //         for (auto [u, v, t, lambda] : edges) {
-    //             std::cout << u << ' ' << v << ' ' << t << '_' << lambda << '\n';
-    //         }
-    //         std::cout << "output:\n";
-    //         for (int u = 1; u <= n; u++) {
-    //             std::cout << t1[u] << " \n"[u == n];
-    //         }
-    //         for (int u = 1; u <= n; u++) {
-    //             std::cout << t2[u] << " \n"[u == n];
-    //         }
-    //         exit(0);
-    //     }
-    // }
-
-    // for (int u = 1; u <= n; u++) {
-    //     out << u << ": " << 1 << ' ';
-    //     std::vector<Edge> path = fm.getForemostPath(u).second;
-    //     if (!isPathValid(n, edges, path)) {
-    //         std::cout << "Path not valid!\n";
-    //         exit(0);
-    //     }
-    //     for (auto [u, v, t, lambda] : path) {
-    //         out << v << ' ';
-    //     }
-    //     out << '\n';
-    // }
+    }
 }
 
-void strestTestCheckTime() { // check for time optimality
-    const int LOWER_N = 1, UPPER_N = 10, LOWER_M = 0, UPPER_M = 10, T = 20, L = 20;
+void strestTestCheckTime(bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // check if time is indeed optimal
+    const int LOWER_N = 1, UPPER_N = 5, LOWER_M = 0, UPPER_M = 6, T = 30, L = 6;
     auto [n, edges] = randomGraph(LOWER_N, UPPER_N, LOWER_M, UPPER_M, T, L);
     streamPresentation_ize(n, edges);
 
@@ -72,37 +88,73 @@ void strestTestCheckTime() { // check for time optimality
         for (int u = 1; u <= n; u++) {
             std::cout << time1[u] << " \n"[u == n];
         }
+        std::cout << "should be:\n";
         for (int u = 1; u <= n; u++) {
             std::cout << time2[u] << " \n"[u == n];
         }
-        exit(0);
-
+        exit(-1);
     };
 
-    /* foremost test */ {
+    if (foremost) {
         int x = 1;
-        int ta = 0, tw = T;
+        int ta = T / 4, tw = T - ta;
         Foremost fm(n, edges, ta, tw, x);
         std::vector<int> time1 = fm.getAllForemostTime();
         std::vector<int> time2 = naive::getAllForemostTime(n, edges, ta, tw, x);
         if (time1 != time2) outputCounterTest("FOREMOST", ta, tw, x, time1, time2);
     }
     
-}
-
-void visualTestOnRandomGraph() { // just for empirical validation
-    auto [n, edges] = randomGraph();
-    streamPresentation_ize(n, edges);
-    
-    std::cout << "size of graph: " << n << ' ' << edges.size() << '\n';
-    for (auto [u, v, t, lambda] : edges) {
-        std::cout << u << ' ' << v << ' ' << t << '_' << lambda << '\n';
+    if (revforemost) {
+        int x = 1;
+        int ta = T / 4, tw = T - ta;
+        ReverseForemost rfm(n, edges, ta, tw, x);
+        std::vector<int> time1 = rfm.getAllReverseForemostTime();
+        std::vector<int> time2 = naive::getAllReverseForemostTime(n, edges, ta, tw, x);
+        if (time1 != time2) outputCounterTest("REVFOREMOST", ta, tw, x, time1, time2);
     }
     
-    /* foremost test */ {
+    if (fastest) {
         int x = 1;
-        int ta = 10, tw = 90;
-        std::cout << "specification: " << x << ' ' << ta << ' ' << tw << ' ';
+        int ta = T / 4, tw = T - ta;
+        Fastest ft(n, edges, ta, tw, x);
+        std::vector<int> time1 = ft.getAllFastestTime();
+        std::vector<int> time2 = naive::getAllFastestTime(n, edges, ta, tw, x);
+        if (time1 != time2) outputCounterTest("FASTEST", ta, tw, x, time1, time2);
+    }
+
+    if (shortest) {
+        
+    }
+}
+
+void visualTestOnRandomGraph(bool use_random_over_manual, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // for empirical/human validation
+    int n;
+    std::vector<Edge> edges;
+    int ta, tw, x;
+    if (use_random_over_manual) {
+        tie(n, edges) = randomGraph();
+        std::cout << "size of graph: " << n << ' ' << edges.size() << '\n';
+        for (auto [u, v, t, lambda] : edges) {
+            std::cout << u << ' ' << v << ' ' << t << '_' << lambda << '\n';
+        }
+    } else {
+        int m;
+        std::cin >> n >> m;
+        std::cin >> ta >> tw >> x;
+        for (int i = 0; i < m; i++) {
+            int u, v, t, lambda;
+            std::cin >> u >> v >> t >> lambda;
+            edges.push_back({u, v, t, lambda});
+        }
+    }
+    streamPresentation_ize(n, edges);
+    
+    if (foremost) {
+        if (use_random_over_manual) {
+            x = 1;
+            ta = 10, tw = 90;
+        }
+        std::cout << "specification: " << x << ' ' << ta << ' ' << tw << '\n';
         Foremost fm(n, edges, ta, tw, x);
         std::vector<int> time = fm.getAllForemostTime();
         std::cout << "foremost: ";
@@ -111,10 +163,12 @@ void visualTestOnRandomGraph() { // just for empirical validation
         }
     }
 
-    /* foremost test */ {
-        int x = 1;
-        int ta = 10, tw = 90;
-        std::cout << "specification: " << x << ' ' << ta << ' ' << tw << ' ';
+    if (revforemost) {
+        if (use_random_over_manual) {
+            x = 1;
+            ta = 10, tw = 90;
+        }
+        std::cout << "specification: " << x << ' ' << ta << ' ' << tw << '\n';
         ReverseForemost rfm(n, edges, ta, tw, x);
         std::vector<int> time = rfm.getAllReverseForemostTime(); 
         std::cout << "revforemost: ";
@@ -122,9 +176,27 @@ void visualTestOnRandomGraph() { // just for empirical validation
             std::cout << time[u] << " \n"[u == n];
         }
     }
+    
+    if (fastest) { 
+        if (use_random_over_manual) {
+            x = 1;
+            ta = 10, tw = 90;
+        }
+        std::cout << "specification: " << x << ' ' << ta << ' ' << tw << '\n';
+        Fastest ft(n, edges, ta, tw, x);
+        std::vector<int> time = ft.getAllFastestTime(); 
+        std::cout << "fastest: ";
+        for (int u = 1; u <= n; u++) {
+            std::cout << time[u] << " \n"[u == n];
+        }
+    }
+
+    if (shortest) {
+        
+    }
 }
 
-void testOnDataTest(std::filesystem::path filepath) { // run on external datasets
+void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // run on external datasets
     // loading of input
     Timer timer;
     auto [n, edges] = loadGraph(filepath);
@@ -132,37 +204,41 @@ void testOnDataTest(std::filesystem::path filepath) { // run on external dataset
     streamPresentation_ize(n, edges);
     std::cout << "sorting graph took " << timer.elapsed(true) << " seconds\n";
     
-    /* foremost test */ {
+    if (foremost) {
         int x = 1;
         int ta = 0, tw = INF;
-        std::filesystem::path output_path = filepath.parent_path() / "foremost.txt";
-        std::ofstream out(output_path);
+
         timer.reset();
         Foremost fm(n, edges, ta, tw, x);
         std::cout << "foremost computation took " << timer.elapsed(true) << " seconds\n";
         std::vector<int> time = fm.getAllForemostTime();
+        
+        std::filesystem::path output_path = filepath.parent_path() / "foremost.txt";
+        std::ofstream out(output_path);
         for (int u = 1; u <= n; u++) out << time[u] << '\n';
         out.close();
     }
 
-    /* reverse foremost test */ {
+    if (revforemost) {
         int x = n;
         int ta = 0, tw = INF;
-        std::filesystem::path output_path = filepath.parent_path() / "revforemost.txt";
-        std::ofstream out(output_path);
+        
         timer.reset();
         ReverseForemost rfm(n, edges, ta, tw, x);
         std::cout << "revforemost computation took " << timer.elapsed(true) << " seconds\n";
         std::vector<int> time = rfm.getAllReverseForemostTime();
+
+        std::filesystem::path output_path = filepath.parent_path() / "revforemost.txt";
+        std::ofstream out(output_path);
         for (int u = 1; u <= n; u++) out << time[u] << '\n';
         out.close();
     }
 
-    /* shortest test */ {
+    if (fastest) {
         
     }
 
-    /* fastest test */ {
+    if (shortest) {
         
     }
 }

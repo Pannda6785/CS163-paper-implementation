@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <fstream>
 #include <filesystem>
 #include <string>
@@ -61,7 +62,11 @@ std::pair<int, std::vector<Edge>> loadGraph(std::filesystem::path filepath) {
     return make_pair(n, edges);
 }
 
-bool isPathValid(const int &n, const std::vector<Edge> &edges, const std::vector<Edge> &path) {
+bool isPathValid(const int &n, const std::vector<Edge> &edges, const std::vector<Edge> &path, int ta = 0, int tw = INF, int source = -1, int target = -1) {
+    if (path.empty()) return !(source != -1 && target != -1 && source != target);
+    if (source != -1 && path.front().u != source) return false;
+    if (target != -1 && path.back().v != target) return false;
+    if (path.front().t < ta || path.back().t + path.back().lambda > tw) return false;
     for (int i = 0; i + 1 < path.size(); i++) {
         const Edge &e1 = path[i];
         const Edge &e2 = path[i + 1];
@@ -69,4 +74,29 @@ bool isPathValid(const int &n, const std::vector<Edge> &edges, const std::vector
         if (e1.t + e1.lambda > e2.t) return false;
     }
     return true;
+}
+
+int computeTimeOfPath(const int &n, const std::vector<Edge> &edges, int ta, int tw, const std::vector<Edge> &path, std::string type) { // assumes path is valid of their structure, timespan, source and target (use isPathValid() above)
+    if (type == "FOREMOST") {
+        if (path.empty()) return ta;
+        return path.back().t + path.back().lambda;
+    }
+    if (type == "REVFOREMOST") {
+        if (path.empty()) return tw;
+        return path.front().t;
+    }
+    if (type == "FASTEST") {
+        if (path.empty()) return 0;
+        return path.back().t + path.back().lambda - path.front().t;
+    }
+    if (type == "SHORTEST") {
+        int sum = 0;
+        for (const Edge &e : path) {
+            sum += e.lambda;
+        }
+        return sum;
+    }
+    std::cout << "Wrong type specified, possible choices: FOREMOST REVFOREMOST FASTEST SHORTEST\n";
+    exit(-1);
+    return -1;
 }

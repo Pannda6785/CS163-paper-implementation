@@ -19,7 +19,7 @@ public:
         fill(time.begin(), time.end(), INF);
         time[source] = ta;
         for (const Edge &e : edges) {
-            if (e.t > tw) break; // further edges in streaming presentation won't be used
+            if (e.t > tw) break; // edge departs too late, further edges in streaming presentation won't be used
             if (e.t + e.lambda > tw) continue; // edge arrives too late
             if (e.t < time[e.u]) continue; // edge departs earlier than u's earliest arrived time
             if (e.t + e.lambda < time[e.v]) { // from node u, use the edge to go to node v
@@ -28,19 +28,19 @@ public:
             }
         }
     }
-    std::pair<int, vector<Edge>> getForemostPath(int target) {
+    std::pair<int, vector<Edge>> getForemostPath(int target) const {
         if (time[target] == INF) { 
             // raise no path
             return make_pair(INF, vector<Edge>());
         }
         vector<Edge> path;
         for (int node = target; node != source; node = parent[node].u) {
-            path.push_back(parent[node]); // the edge leading to u 
+            path.push_back(parent[node]); // the edge leading to 'node'
         }
         reverse(path.begin(), path.end());
         return make_pair(time[target], path);
     }
-    vector<int> getAllForemostTime() {
+    vector<int> getAllForemostTime() const {
         return time;
     }
 };
