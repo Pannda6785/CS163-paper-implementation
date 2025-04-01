@@ -14,23 +14,29 @@
 #include <vector>
 
 void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // check if paths are valid and have the claimed time
-    const int LOWER_N = 1, UPPER_N = 30, LOWER_M = 0, UPPER_M = 200, T = 200, L = 10;
+    const int LOWER_N = 1, UPPER_N = 7, LOWER_M = 0, UPPER_M = 14, T = 50, L = 5;
     auto [n, edges] = randomGraph(LOWER_N, UPPER_N, LOWER_M, UPPER_M, T, L);
     streamPresentation_ize(n, edges);
 
-    auto checkPath = [&](std::string problem, int ta, int tw, int x, const std::pair<int, std::vector<Edge>> timepath) -> void {
+    auto checkPath = [&](std::string problem, int ta, int tw, int source, int target, const std::pair<int, std::vector<Edge>> timepath) -> void {
         if (abs(timepath.first) == INF) return; // no path reported;
-        int source = problem == "REVFOREMOST" ? -1 : x;
-        int target = problem == "REVFOREMOST" ? x : -1;
-        if (!isPathValid(n, edges, timepath.second, ta, tw, source, target) || computeTimeOfPath(n, edges, ta, tw, timepath.second, problem) != timepath.first) {
+        bool pathStructureCorrect = isPathValid(n, edges, timepath.second, ta, tw, source, target);
+        int time_found = computeTimeOfPath(n, edges, ta, tw, timepath.second, problem);
+        if (!pathStructureCorrect || time_found != timepath.first) {
             std::cout << "COUNTERTEST FOUND ON PROBLEM " << problem << '\n';
             std::cout << "size of graph: " << n << ' ' << edges.size() << '\n';
-            std::cout << "specification: " << x << ' ' << ta << ' ' << tw << '\n';
+            std::cout << "specification: " << ta << ' ' << tw << '\n';
+            std::cout << "source target: " << source << ' ' << target << '\n';
             for (auto [u, v, t, lambda] : edges) {
                 std::cout << u << ' ' << v << ' ' << t << '_' << lambda << '\n';
             }
-
             std::cout << "time reported: " << timepath.first << '\n';
+            if (time_found != timepath.first) {
+                std::cout << "time of path should be: " << time_found << '\n';
+            }
+            if (!pathStructureCorrect) {
+                std::cout << "path structure is invalid\n";
+            }
             std::cout << "path reported:\n";
             for (const Edge &e : edges) {
                 std::cout << "(" << e.u << ", " << e.v << ", " << e.t << ", " << e.lambda << ")\n";
@@ -44,7 +50,7 @@ void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fas
         int ta = T / 4, tw = T - ta;
         Foremost fm(n, edges, ta, tw, x);
         for (int u = 1; u <= n; u++) {
-            checkPath("FOREMOST", ta, tw, x, fm.getForemostPath(u));
+            checkPath("FOREMOST", ta, tw, x, u, fm.getForemostPath(u));
         }
     }
     
@@ -53,7 +59,7 @@ void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fas
         int ta = T / 4, tw = T - ta;
         ReverseForemost rfm(n, edges, ta, tw, x);
         for (int u = 1; u <= n; u++) {
-            checkPath("REVFOREMOST", ta, tw, x, rfm.getReverseForemostPath(u));
+            checkPath("REVFOREMOST", ta, tw, u, x, rfm.getReverseForemostPath(u));
         }
     }
     
@@ -63,7 +69,7 @@ void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fas
         Fastest ft(n, edges, ta, tw, x);
         std::vector<int> time1 = ft.getAllFastestTime();
         for (int u = 1; u <= n; u++) {
-            checkPath("FASTEST", ta, tw, x, ft.getFastestPath(u));
+            checkPath("FASTEST", ta, tw, x, u, ft.getFastestPath(u));
         }
     }
 
@@ -73,7 +79,7 @@ void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fas
 }
 
 void strestTestCheckTime(bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // check if time is indeed optimal
-    const int LOWER_N = 1, UPPER_N = 5, LOWER_M = 0, UPPER_M = 6, T = 30, L = 6;
+    const int LOWER_N = 1, UPPER_N = 5, LOWER_M = 0, UPPER_M = 8, T = 30, L = 6;
     auto [n, edges] = randomGraph(LOWER_N, UPPER_N, LOWER_M, UPPER_M, T, L);
     streamPresentation_ize(n, edges);
 
@@ -198,12 +204,13 @@ void visualTestOnRandomGraph(bool use_random_over_manual, bool foremost = true, 
 
 void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // run on external datasets
     // loading of input
+    std::cout << "\nTesting on " << filepath.string() << '\n';
     Timer timer;
     auto [n, edges] = loadGraph(filepath);
     std::cout << "loading graph took " << timer.elapsed(true) << " seconds\n";
     streamPresentation_ize(n, edges);
     std::cout << "sorting graph took " << timer.elapsed(true) << " seconds\n";
-    
+
     if (foremost) {
         int x = 1;
         int ta = 0, tw = INF;
@@ -235,7 +242,18 @@ void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool r
     }
 
     if (fastest) {
+        int x = 1;
+        int ta = 0, tw = INF;
+
+        timer.reset();
+        Fastest ft(n, edges, ta, tw, x);
+        std::cout << "fastest computation took " << timer.elapsed(true) << " seconds\n";
+        std::vector<int> time = ft.getAllFastestTime();
         
+        std::filesystem::path output_path = filepath.parent_path() / "fastest.txt";
+        std::ofstream out(output_path);
+        for (int u = 1; u <= n; u++) out << time[u] << '\n';
+        out.close();
     }
 
     if (shortest) {

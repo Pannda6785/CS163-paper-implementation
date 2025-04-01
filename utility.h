@@ -14,7 +14,7 @@
 #include <random>
 #include <cassert>
 
-const int INF = 1.1e9;
+const int INF = 2e9;
 
 std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
 int randint(int l, int r) {
@@ -47,15 +47,13 @@ std::pair<int, std::vector<Edge>> randomGraph(int lower_n = 1, int upper_n = 20,
 
 std::pair<int, std::vector<Edge>> loadGraph(std::filesystem::path filepath) {
     std::ifstream inp(filepath);
-    std::string goat;
-    inp >> goat >> goat >> goat >> goat;
     int n, m;
-    inp >> m >> n >> n;
+    inp >> n >> m;
     std::vector<Edge> edges;
     for (int i = 0; i < m; i++) {
         int u, v, t, lambda;
         inp >> u >> v >> lambda >> t;
-        assert(lambda < INF && t < INF);
+        assert(lambda < INF && t < INF && lambda > 0);
         edges.push_back({u, v, t, lambda});
     }
     inp.close();
