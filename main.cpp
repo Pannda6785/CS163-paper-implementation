@@ -6,14 +6,14 @@ int main() {
     int ITE;
     std::cin >> ITE;
     for (int ite = 0; ite < ITE; ite++) {
-        stressTestCheckPath(true, true, true, false);
+        strestTestCheckTime(true, true, true, true);
     }
     for (int ite = 0; ite < ITE; ite++) {
-        strestTestCheckTime(true, true, true, false);
+        stressTestCheckPath(true, true, true, true);
     }
     std::cout << "all okay\n";
 
-    // testOnDataTest(std::filesystem::path("./datasets/wikipedia-growth/out.wikipedia-growth"), false, false, true, false, 10, false, false); // big
+    testOnDataTest(std::filesystem::path("./datasets/wikipedia-growth/out.wikipedia-growth"), true, true, true, true, 30, false, false); // big
 
     // testOnDataTest(std::filesystem::path("./datasets/ca-cit-HepPh/out.ca-cit-HepPh"), true, true, true, false);
     // testOnDataTest(std::filesystem::path("./datasets/dblp_coauthor/out.dblp_coauthor"), true, true, true, false); // big

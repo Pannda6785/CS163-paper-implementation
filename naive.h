@@ -46,4 +46,14 @@ namespace naive {
         return time;
     } 
 
+    vector<int> getAllShortestTime(const int &n, const vector<Edge> &edges, int ta, int tw, int x) {
+        vector<int> time(n + 1, INF);
+        time[x] = 0;
+        for (const vector<Edge> &path : findAllValidPath(n, edges, ta, tw, x, -1)) {
+            int duration = 0;
+            for (const Edge &e : path) duration += e.lambda;
+            time[path.back().v] = std::min(time[path.back().v], duration);
+        }
+        return time;
+    } 
 }
