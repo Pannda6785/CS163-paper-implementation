@@ -1,6 +1,5 @@
 #include "utility.h"
 
-#include <set>
 #include <vector>
 using std::vector;
 
@@ -13,59 +12,54 @@ using std::vector;
 class Fastest {   
     int source;
     vector<int> time;
-    vector<Edge> parent;
-    vector<vector<std::pair<int, int>>> L; // store spans (pairs of (arrival_time, start_time))
-    
-    void compute(const int &n, const vector<Edge> &edges, int ta, int tw, int source) {
+    vector<int> arg_a;
+    vector<vector<std::tuple<int, int, Edge>>> L; // store spans (pairs of (start_time, arrival_time, edge lead to this))
+
+    inline void add(vector<std::tuple<int, int, Edge>> &L, int s, int a, Edge e) {
+        int i = (int)L.size() - 1;
+        for (; i >= 0 && std::get<0>(L[i]) >= s; --i) {
+            if (std::get<1>(L[i]) <= a) {
+                return;
+            }
+        }
+        if (i + 1 < L.size() && std::get<0>(L[i + 1]) == s) ++i;
+        for (; i >= 0 && std::get<1>(L[i]) >= a; --i) {
+            L.erase(L.begin() + i);
+        }
+        L.emplace(L.begin() + i + 1, s, a, e);
+    }
+
+public:
+    Fastest(const int &n, const vector<Edge> &edges, int ta, int tw, int source) : source(source), time(n + 1), arg_a(n + 1), L(n + 1) {
         fill(time.begin(), time.end(), INF);
         time[source] = 0;
 
         for (const Edge &e : edges) {
             if (e.t > tw) break; // edge departs too late, future edges won't be used
             if (e.t < ta || e.t + e.lambda > tw) continue; // edge is outside of bounded timespan
-
-            std::pair<int, int> v = {e.t, e.t};
-            auto it = lower_bound(L[e.u].begin(), L[e.u].end(), v, [&](const auto &x, const auto &y) { return x.first < y.first; });
+            if (e.v == source) continue; // an edge leading to source won't be used in the computation for any node
+            
             if (e.u == source) {
-                if (it == L[e.u].end() || it->first != e.t) {
-                    it = L[source].insert(it, v);
-                    it++;
+                // since e.t is in sorted order, only need to check the latest span (instantaneous span)
+                if (L[e.u].empty() || std::get<0>(L[e.u].back()) != e.t) { 
+                     L[e.u].emplace_back(e.t, e.t, e);
                 }
             }
-            
-            if (it != L[e.u].end() && it->first == e.t) ++it;
-            if (it == L[e.u].begin()) continue; // all paths to u arrive at later than t, u cannot be used to update v with this edge
-            --it; // now it points to the latest arrival path not later than t (also implies latest starting time)
-            
-            std::pair<int, int> new_span = std::make_pair(e.t + e.lambda, it->second);
-            if (time[e.v] > new_span.first - new_span.second) {
-                time[e.v] = new_span.first - new_span.second;
-            }
-            
-            /*
-            to update L[v]. by assuming L's are always maintained so that no dominated span (a, s) is present, 
-            we will be inserting new_span into L[e.v] so we first remove all spans dominated by new_span
-            */
-            it = lower_bound(L[e.v].begin(), L[e.v].end(), new_span, [&](const auto &x, const auto &y) { return x.first < y.first; }); 
-            // auto endit = lower_bound(it, L[e.v].end(), new_span, [&](const auto &x, const auto &y) { return x.second <= y.second; }); 
-            auto endit = it;
-            while (endit != L[e.v].end() && endit->second <= new_span.second) ++endit;
-            L[e.v].erase(it, endit);
-            it = endit;
-            /* only if the above process doesn't remove anything then it is possible that new_span is dominated by some already present span
-               we check and add if new_span is not dominated */ 
-            if (it != L[e.v].end() && it != L[e.v].begin() && it->first > new_span.first) it = prev(it); 
-            if (it == L[e.v].begin() || prev(it)->second < new_span.second) { 
-                auto pos = lower_bound(L[e.v].begin(), L[e.v].end(), new_span);
-                L[e.v].insert(pos, new_span);
-            } 
-            
-        }
-    }
 
-public:
-    Fastest(const int &n, const vector<Edge> &edges, int ta, int tw, int source) : source(source), time(n + 1), parent(n + 1), L(n + 1) {
-        compute(n, edges, ta, tw, source);
+            // find the best span from u
+            int i = (int)L[e.u].size() - 1;
+            while (i >= 0 && std::get<1>(L[e.u][i]) > e.t) --i; // if arrival time is still too great then reduce it
+            if (i == -1) continue; // all paths to u arrive later then e.t
+            int s = std::get<0>(L[e.u][i]), a = e.t + e.lambda;
+
+            // (try to) add to L[e.v]
+            add(L[e.v], s, a, e);
+            
+            if (a - s < time[e.v]) {
+                time[e.v] = a - s;
+                arg_a[e.v] = a;
+            }
+        }
     }
     std::pair<int, vector<Edge>> getFastestPath(int target) {
         if (time[target] == INF) { 
@@ -73,9 +67,22 @@ public:
             return make_pair(INF, vector<Edge>());
         }
         vector<Edge> path;
-        for (int node = target; node != source; node = parent[node].u) {
-            path.push_back(parent[node]); // the edge leading to 'node'
-        }
+        int a = arg_a[target];
+        for (int node = target; node != source; ) {
+            int l = 0, r = L[node].size() - 1;
+            while (l < r) {
+                int m = (l + r + 1) / 2;
+                if (std::get<1>(L[node][m]) <= a) {
+                    l = m;
+                } else {
+                    r = m - 1;
+                }
+            }
+            path.push_back(std::get<2>(L[node][l]));
+            node = std::get<2>(L[node][l]).u;
+            a = std::get<1>(L[node][l]);
+        } 
+
         reverse(path.begin(), path.end());
         return make_pair(time[target], path);
     }

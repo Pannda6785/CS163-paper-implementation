@@ -47,6 +47,10 @@ std::pair<int, std::vector<Edge>> randomGraph(int lower_n = 1, int upper_n = 20,
 
 std::pair<int, std::vector<Edge>> loadGraph(std::filesystem::path filepath) {
     std::ifstream inp(filepath);
+    if (!inp.is_open()) {
+        std::cout << "Can't load file!\n";
+        exit(0);
+    }
     int n, m;
     inp >> n >> m;
     std::vector<Edge> edges;

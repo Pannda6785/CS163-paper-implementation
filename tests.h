@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <random>
 
 void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // check if paths are valid and have the claimed time
     const int LOWER_N = 1, UPPER_N = 7, LOWER_M = 0, UPPER_M = 14, T = 50, L = 5;
@@ -38,7 +39,7 @@ void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fas
                 std::cout << "path structure is invalid\n";
             }
             std::cout << "path reported:\n";
-            for (const Edge &e : edges) {
+            for (const Edge &e : timepath.second) {
                 std::cout << "(" << e.u << ", " << e.v << ", " << e.t << ", " << e.lambda << ")\n";
             }
             exit(-1);
@@ -133,7 +134,7 @@ void strestTestCheckTime(bool foremost = true, bool revforemost = true, bool fas
     }
 }
 
-void visualTestOnRandomGraph(bool use_random_over_manual, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // for empirical/human validation
+void visualTest(bool use_random_over_manual, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // for empirical/human validation
     int n;
     std::vector<Edge> edges;
     int ta, tw, x;
@@ -202,28 +203,45 @@ void visualTestOnRandomGraph(bool use_random_over_manual, bool foremost = true, 
     }
 }
 
-void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // run on external datasets
+void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true, int number_of_x = 1, bool only_use_first_x = true, bool output = true) { // run on external datasets
     // loading of input
-    std::cout << "\nTesting on " << filepath.string() << '\n';
+    std::cout << "\nTesting " << number_of_x << " sources on " << filepath.string() << '\n';
     Timer timer;
     auto [n, edges] = loadGraph(filepath);
     std::cout << "loading graph took " << timer.elapsed(true) << " seconds\n";
     streamPresentation_ize(n, edges);
     std::cout << "sorting graph took " << timer.elapsed(true) << " seconds\n";
 
-    if (foremost) {
-        int x = 1;
-        int ta = 0, tw = INF;
+    int ta = 0, tw = INF;
+    vector<int> xs;
+    number_of_x = std::min(number_of_x, n);
+    if (only_use_first_x) {
+        xs.resize(number_of_x);
+        iota(xs.begin(), xs.end(), 1);
+    } else {
+        xs.resize(n);
+        iota(xs.begin(), xs.end(), 1);
+        std::shuffle(xs.begin(), xs.end(), rng);
+        xs.resize(number_of_x);
+    }
 
-        timer.reset();
-        Foremost fm(n, edges, ta, tw, x);
-        std::cout << "foremost computation took " << timer.elapsed(true) << " seconds\n";
-        std::vector<int> time = fm.getAllForemostTime();
-        
-        std::filesystem::path output_path = filepath.parent_path() / "foremost.txt";
-        std::ofstream out(output_path);
-        for (int u = 1; u <= n; u++) out << time[u] << '\n';
-        out.close();
+    if (foremost) {
+        double sum = 0;
+        for (int x : xs) {
+            timer.reset();
+            Foremost fm(n, edges, ta, tw, x);
+            sum += timer.elapsed(true);
+            
+            if (output) {
+                std::vector<int> time = fm.getAllForemostTime();
+                std::filesystem::path output_path = filepath.parent_path() / "foremost.txt";
+                std::ofstream out(output_path);
+                for (int u = 1; u <= n; u++) out << time[u] << '\n';
+                out.close();
+            }
+        }
+        sum /= number_of_x;
+        std::cout << "foremost computation took " << sum << " seconds\n";
     }
 
     if (revforemost) {
@@ -242,18 +260,23 @@ void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool r
     }
 
     if (fastest) {
-        int x = 1;
-        int ta = 0, tw = INF;
-
-        timer.reset();
-        Fastest ft(n, edges, ta, tw, x);
-        std::cout << "fastest computation took " << timer.elapsed(true) << " seconds\n";
-        std::vector<int> time = ft.getAllFastestTime();
-        
-        std::filesystem::path output_path = filepath.parent_path() / "fastest.txt";
-        std::ofstream out(output_path);
-        for (int u = 1; u <= n; u++) out << time[u] << '\n';
-        out.close();
+        double sum = 0;
+        for (int x : xs) {
+            timer.reset();
+            Fastest ft(n, edges, ta, tw, x);
+            sum += timer.elapsed(true);
+            
+            if (output) {
+                std::vector<int> time = ft.getAllFastestTime();
+                std::filesystem::path output_path = filepath.parent_path() / "fastest.txt";
+                std::ofstream out(output_path);
+                for (int u = 1; u <= n; u++) out << time[u] << '\n';
+                out.close();
+                out.close();
+            }
+        }
+        sum /= number_of_x;
+        std::cout << "fastest computation took " << sum << " seconds\n";
     }
 
     if (shortest) {
