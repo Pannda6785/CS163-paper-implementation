@@ -1,19 +1,19 @@
 #include "tests.h"
 
 int main() {    
-    // visualTest(false, true, true, true, false);
+    // visualTest(true, true, true, true, true, true);
     
-    int ITE;
-    std::cin >> ITE;
-    for (int ite = 0; ite < ITE; ite++) {
-        strestTestCheckTime(true, true, true, true);
-    }
-    for (int ite = 0; ite < ITE; ite++) {
-        stressTestCheckPath(true, true, true, true);
-    }
-    std::cout << "all okay\n";
+    // int ITE;
+    // std::cin >> ITE;
+    // for (int ite = 0; ite < ITE; ite++) {
+    //     strestTestCheckTime(true, true, true, true);
+    // }
+    // for (int ite = 0; ite < ITE; ite++) {
+    //     stressTestCheckPath(true, true, true, true);
+    // }
+    // std::cout << "all okay\n";
 
-    testOnDataTest(std::filesystem::path("./datasets/wikipedia-growth/out.wikipedia-growth"), true, true, true, true, 30, false, false); // big
+    // testOnDataTest(std::filesystem::path("./datasets/wikipedia-growth/out.wikipedia-growth"), true, true, true, true, 100, false, false); // big
 
     // testOnDataTest(std::filesystem::path("./datasets/ca-cit-HepPh/out.ca-cit-HepPh"), true, true, true, false);
     // testOnDataTest(std::filesystem::path("./datasets/dblp_coauthor/out.dblp_coauthor"), true, true, true, false); // big
@@ -28,3 +28,4 @@ int main() {
     // testOnDataTest(std::filesystem::path("./datasets/wikipedia-growth/out.wikipedia-growth"), true, true, true, false); // big
     // testOnDataTest(std::filesystem::path("./datasets/youtube-u-growth/out.youtube-u-growth"), true, true, true, false);
 }
+

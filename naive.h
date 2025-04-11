@@ -1,11 +1,16 @@
-#include "utility.h"
+#include "graphUtil.h"
 
 #include <vector>
 using std::vector;
 
+/*
+the namespace contains naive algorithms to compute the minimum temporal paths
+the algorithms generate all temporal path and then choose out the "minimal" one
+*/
 namespace naive {
     
-    vector<vector<Edge>> findAllValidPath(const int &n, const vector<Edge> &edges, int ta = 0, int tw = INF, int source = -1, int target = -1) { // does not generate empty path
+    /* generates all valid temporal path within a specified time interval, source and target (any source/target if -1). this does not generate the empty path */
+    vector<vector<Edge>> findAllValidPath(const int &n, const vector<Edge> &edges, int ta = 0, int tw = INF, int source = -1, int target = -1) { 
         vector<int> order(edges.size());
         iota(order.begin(), order.end(), 0);
         vector<vector<Edge>> paths;
