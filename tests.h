@@ -8,13 +8,31 @@
 
 #include <iostream>
 #include <fstream>
-#include <iomanip>
+#include <iomanip>      
 #include <filesystem>
 #include <string>
 #include <vector>
 #include <random>
 
-void visualTest(bool use_manual, bool also_get_path = false, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // for empirical/human validation
+class Tests {
+public:
+    void visualTest(bool use_manual, bool also_get_path, bool foremost, bool revforemost, bool fastest, bool shortest);
+
+    void stressTestCheckPath(bool foremost, bool revforemost, bool fastest, bool shortest);
+
+    void strestTestCheckTime(bool foremost, bool revforemost, bool fasteste, bool shortest);
+
+    int number_of_x = 1;
+    bool only_use_first_x = true;
+    bool output_to_file = false;
+    void testOnDataTest(std::filesystem::path filepath, bool foremost, bool revforemost, bool fastest, bool shortest);
+};
+
+// =====================================================================================================================================================================
+// IMPLEMENTATION OF TESTS =============================================================================================================================================
+// =====================================================================================================================================================================
+
+void Tests::visualTest(bool use_manual, bool also_get_path = false, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // for empirical/human validation
     int n;
     std::vector<Edge> edges;
     int ta, tw, x;
@@ -30,20 +48,27 @@ void visualTest(bool use_manual, bool also_get_path = false, bool foremost = tru
         std::cout << "x and time interval: " << x << ' ' << ta << ' ' << tw << '\n';
         targets = {n};
     } else {
-        int m;
+        int m;\
+        std::cout << "input n and m: ";
         std::cin >> n >> m;
+        std::cout << "input x, ta and tw: ";
         std::cin >> x >> ta >> tw;
-        int target_cnt;
-        std::cin >> target_cnt;
-        for (int i = 0; i < target_cnt; i++) {
-            int u;
-            std::cin >> u;
-            targets.push_back(u);
-        }
         for (int i = 0; i < m; i++) {
             int u, v, t, lambda;
+            std::cout << "input the edge (u, v, t, lambda): "; 
             std::cin >> u >> v >> t >> lambda;
             edges.push_back({u, v, t, lambda});
+        }
+        if (also_get_path) {
+            int target_cnt;
+            std::cout << "input number of path queries: ";
+            std::cin >> target_cnt;
+            std::cout << "input " << target_cnt << " nodes: ";
+            for (int i = 0; i < target_cnt; i++) {
+                int u;
+                std::cin >> u;
+                targets.push_back(u);
+            }
         }
     }
     streamPresentation_ize(n, edges);
@@ -51,7 +76,7 @@ void visualTest(bool use_manual, bool also_get_path = false, bool foremost = tru
     if (foremost) {
         Foremost fm(n, edges, x, ta, tw);
         std::vector<int> time = fm.getAllForemostTime();
-        std::cout << "foremost: ";
+        std::cout << "foremost times: ";
         for (int u = 1; u <= n; u++) {
             std::cout << time[u] << " \n"[u == n];
         }
@@ -72,7 +97,7 @@ void visualTest(bool use_manual, bool also_get_path = false, bool foremost = tru
     if (revforemost) {
         ReverseForemost rfm(n, edges, x, ta, tw);
         std::vector<int> time = rfm.getAllReverseForemostTime(); 
-        std::cout << "revforemost: ";
+        std::cout << "revforemost times: ";
         for (int u = 1; u <= n; u++) {
             std::cout << time[u] << " \n"[u == n];
         }
@@ -93,7 +118,7 @@ void visualTest(bool use_manual, bool also_get_path = false, bool foremost = tru
     if (fastest) { 
         Fastest ft(n, edges, x, ta, tw);
         std::vector<int> time = ft.getAllFastestTime(); 
-        std::cout << "fastest: ";
+        std::cout << "fastest times: ";
         for (int u = 1; u <= n; u++) {
             std::cout << time[u] << " \n"[u == n];
         }
@@ -114,7 +139,7 @@ void visualTest(bool use_manual, bool also_get_path = false, bool foremost = tru
     if (shortest) {
         Shortest st(n, edges, x, ta, tw);
         std::vector<int> time = st.getAllShortestTime(); 
-        std::cout << "shortest: ";
+        std::cout << "shortest times: ";
         for (int u = 1; u <= n; u++) {
             std::cout << time[u] << " \n"[u == n];
         }
@@ -133,7 +158,7 @@ void visualTest(bool use_manual, bool also_get_path = false, bool foremost = tru
     }
 }
 
-void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // check if paths are valid and have the claimed time
+void Tests::stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // check if paths are valid and have the claimed time
     const int LOWER_N = 1, UPPER_N = 15, LOWER_M = 0, UPPER_M = 40, T = 100, L = 10;
     auto [n, edges] = randomGraph(LOWER_N, UPPER_N, LOWER_M, UPPER_M, T, L);
     streamPresentation_ize(n, edges);
@@ -198,7 +223,7 @@ void stressTestCheckPath(bool foremost = true, bool revforemost = true, bool fas
     }
 }
 
-void strestTestCheckTime(bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // check if time is indeed optimal
+void Tests::strestTestCheckTime(bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // check if time is indeed optimal
     const int LOWER_N = 1, UPPER_N = 8, LOWER_M = 0, UPPER_M = 8, T = 30, L = 6;
     auto [n, edges] = randomGraph(LOWER_N, UPPER_N, LOWER_M, UPPER_M, T, L);
     streamPresentation_ize(n, edges);
@@ -252,9 +277,9 @@ void strestTestCheckTime(bool foremost = true, bool revforemost = true, bool fas
     }
 }
 
-void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true, int number_of_x = 1, bool only_use_first_x = true, bool output = true) { // run on external datasets
+void Tests::testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool revforemost = true, bool fastest = true, bool shortest = true) { // run on external datasets
     // loading of input
-    std::cout << "\nTesting " << number_of_x << " sources on " << filepath.string() << '\n';
+    std::cout << "\nTesting " << number_of_x << (only_use_first_x ? " first" : " random") << " sources on " << filepath.string() << '\n';
     Timer timer;
     auto [n, edges] = loadGraph(filepath);
     std::cout << "loading graph took " << timer.elapsed(true) << " seconds\n";
@@ -281,7 +306,7 @@ void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool r
             Foremost fm(n, edges, x, ta, tw);
             sum += timer.elapsed();
             
-            if (output) {
+            if (output_to_file) {
                 std::vector<int> time = fm.getAllForemostTime();
                 std::filesystem::path output_path = filepath.parent_path() / "foremost.txt";
                 std::ofstream out(output_path);
@@ -300,7 +325,7 @@ void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool r
             ReverseForemost rfm(n, edges, x, ta, tw);
             sum += timer.elapsed();
             
-            if (output) {
+            if (output_to_file) {
                 std::vector<int> time = rfm.getAllReverseForemostTime();
                 std::filesystem::path output_path = filepath.parent_path() / "revforemost.txt";
                 std::ofstream out(output_path);
@@ -319,7 +344,7 @@ void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool r
             Fastest ft(n, edges, x, ta, tw);
             sum += timer.elapsed();
             
-            if (output) {
+            if (output_to_file) {
                 std::vector<int> time = ft.getAllFastestTime();
                 std::filesystem::path output_path = filepath.parent_path() / "fastest.txt";
                 std::ofstream out(output_path);
@@ -338,7 +363,7 @@ void testOnDataTest(std::filesystem::path filepath, bool foremost = true, bool r
             Shortest st(n, edges, x, ta, tw);
             sum += timer.elapsed();
             
-            if (output) {
+            if (output_to_file) {
                 std::vector<int> time = st.getAllShortestTime();
                 std::filesystem::path output_path = filepath.parent_path() / "shortest.txt";
                 std::ofstream out(output_path);

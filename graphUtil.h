@@ -16,22 +16,21 @@
 
 const int INF = 2e9;
 
-std::mt19937 rng(163);
-// std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
-int randint(int l, int r) {
-    return std::uniform_int_distribution<int>(l, r)(rng);
-}
-
 struct Edge {
     int u, v, t, lambda;
 };
-
 
 /* reorder the edges in non-decreasing order of starting time of edges */
 void streamPresentation_ize(int &n, std::vector<Edge> &edges) { 
     std::sort(edges.begin(), edges.end(), [&](const Edge &e1, const Edge &e2) {
         return e1.t < e2.t;
     });
+}
+
+std::mt19937 rng(163);
+// std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+int randint(int l, int r) {
+    return std::uniform_int_distribution<int>(l, r)(rng);
 }
 
 /* generate a random temporal graph */
@@ -68,7 +67,6 @@ std::pair<int, std::vector<Edge>> loadGraph(std::filesystem::path filepath) {
     inp.close();
     return make_pair(n, edges);
 }
-
 
 /* check if a path is a valid temporal path that is contained within a time interval and have specified source/target (any source/target if -1) */
 bool isPathValid(const int &n, const std::vector<Edge> &edges, const std::vector<Edge> &path, int ta = 0, int tw = INF, int source = -1, int target = -1) {

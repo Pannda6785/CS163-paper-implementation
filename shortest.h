@@ -10,32 +10,19 @@ using std::vector;
     Also reports the shortest time+path from x to any specified destination.
 */
 class Shortest {   
-    struct PathUnit { // presents a possible path to a node
+    struct Path { // presents a possible path to a node
         int d, a; // distance and arrival time of the path
         Edge e; // the last edge used in the path
-        PathUnit() {}
-        PathUnit(int d, int a, Edge e) : d(d), a(a), e(e) {}
+        Path() {}
+        Path(int d, int a, Edge e) : d(d), a(a), e(e) {}
     };
     int source;
     vector<int> time;
     vector<int> arg_a;
-    vector<vector<PathUnit>> L; 
+    vector<vector<Path>> L; 
 
     /* find the greatest i so that L[i].a <= t, or -1 if there is no such i */
-    inline int find(const vector<PathUnit> &L, int t) const {
-        /* binary search */
-        // int l = -1, r = L.size();
-        // while (l + 1 < r) {
-        //     int m = (l + r) / 2;
-        //     if (L[m].a <= t) {
-        //         l = m;
-        //     } else {
-        //         r = m;
-        //     }
-        // }
-        // return l;
-
-        /* brute */
+    inline int find(const vector<Path> &L, int t) const {
         int i = (int)L.size() - 1;
         for (; i >= 0 && L[i].a > t; --i);
         return i;
@@ -47,7 +34,7 @@ class Shortest {
         otherwise remove elemenst dominated by (d, a) and add (d, a)
     domination condition: X dominate Y if X.a <= Y.a and X.d <= Y.d
     */
-    inline void add(vector<PathUnit> &L, int d, int a, Edge e) {
+    inline void add(vector<Path> &L, int d, int a, Edge e) {
         int i = find(L, a);
         if (i != -1 && L[i].d <= d) return; // (d, a) is dominated
         if (i == -1 || L[i].a < a) ++i;
