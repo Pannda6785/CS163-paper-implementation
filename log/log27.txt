@@ -1,0 +1,71 @@
+Testing 100 random sources on ./datasets/ca-cit-HepPh/out.ca-cit-HepPh
+loading graph took 2.79665 seconds
+sorting graph took 0.226402 seconds
+foremost computation took 0.0114052 seconds on average
+revforemost computation took 0.0139289 seconds on average
+fastest computation took 0.0250484 seconds on average
+shortest computation took 0.0320914 seconds on average
+
+Testing 100 random sources on ./datasets/dblp_coauthor/out.dblp_coauthor
+loading graph took 34.8283 seconds
+sorting graph took 1.60645 seconds
+foremost computation took 0.134248 seconds on average
+revforemost computation took 0.168508 seconds on average
+fastest computation took 0.603597 seconds on average
+shortest computation took 0.540828 seconds on average
+
+Testing 100 random sources on ./datasets/enron/out.enron
+loading graph took 0.7524 seconds
+sorting graph took 0.121552 seconds
+foremost computation took 0.00290627 seconds on average
+revforemost computation took 0.00392315 seconds on average
+fastest computation took 0.00735624 seconds on average
+shortest computation took 0.0083384 seconds on average
+
+Testing 100 random sources on ./datasets/facebook-wosn-links/out.facebook-wosn-links
+loading graph took 0.55554 seconds
+sorting graph took 0.0576164 seconds
+foremost computation took 0.00194183 seconds on average
+revforemost computation took 0.00188609 seconds on average
+fastest computation took 0.00538467 seconds on average
+shortest computation took 0.00629353 seconds on average
+
+Testing 100 random sources on ./datasets/flickr-growth/out.flickr-growth
+loading graph took 20.5689 seconds
+sorting graph took 1.05211 seconds
+foremost computation took 0.111455 seconds on average
+revforemost computation took 0.156732 seconds on average
+fastest computation took 0.447235 seconds on average
+shortest computation took 0.604306 seconds on average
+
+Testing 100 random sources on ./datasets/munmun_digg_reply/out.munmun_digg_reply
+loading graph took 0.129275 seconds
+sorting graph took 0.0090452 seconds
+foremost computation took 0.000373066 seconds on average
+revforemost computation took 0.000350109 seconds on average
+fastest computation took 0.000796723 seconds on average
+shortest computation took 0.000570701 seconds on average
+
+Testing 100 random sources on ./datasets/slashdot-threads/out.slashdot-threads
+loading graph took 0.116932 seconds
+sorting graph took 0.0102512 seconds
+foremost computation took 0.00053142 seconds on average
+revforemost computation took 0.00044536 seconds on average
+fastest computation took 0.00195828 seconds on average
+shortest computation took 0.00265082 seconds on average
+
+Testing 100 random sources on ./datasets/wikipedia-growth/out.wikipedia-growth
+loading graph took 25.7867 seconds
+sorting graph took 1.16867 seconds
+foremost computation took 0.203481 seconds on average
+revforemost computation took 0.213639 seconds on average
+fastest computation took 1.80918 seconds on average
+shortest computation took 1.86557 seconds on average
+
+Testing 100 random sources on ./datasets/youtube-u-growth/out.youtube-u-growth
+loading graph took 5.93605 seconds
+sorting graph took 0.457027 seconds
+foremost computation took 0.0582766 seconds on average
+revforemost computation took 0.0637075 seconds on average
+fastest computation took 0.183899 seconds on average
+shortest computation took 0.29054 seconds on average
